@@ -1,0 +1,82 @@
+{
+  "version": "2.0.0",
+  "inputs": [
+    {
+      "id": "buildType",
+      "type": "pickString",
+      "description": "Select build type",
+      "options": [
+        "Debug",
+        "Release"
+      ],
+      "default": "Debug"
+    },
+    {
+      "id": "flashTarget",
+      "type": "pickString",
+      "description": "Select flash target location: SYSTEM (RAM), I2C_EEPROM, or SPI_FLASH",
+      "options": [
+        "SYSTEM",
+        "I2C_EEPROM",
+        "SPI_FLASH"
+      ],
+      "default": "SYSTEM"
+    }
+  ],
+  "tasks": [
+    {
+      "label": "Build FX3 Firmware",
+      "detail": "Build firmware using CMake with selected configuration",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "${input:buildType}"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Flash FX3 Firmware",
+      "detail": "Program application firmware to selected target",
+      "type": "shell",
+      "command": "${env:FX3_INSTALL_PATH}/util/cyfwprog/cyfwprog.exe",
+      "args": [
+        "-fw",
+        "${workspaceFolder}/build/${input:buildType}/CyFx3Fw.img",
+        "-dest",
+        "${input:flashTarget}"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Flash FX3 Bootloader",
+      "detail": "Program bootloader to selected target (Warning: Use with caution!)",
+      "type": "shell",
+      "command": "${env:FX3_INSTALL_PATH}/util/cyfwprog/cyfwprog.exe",
+      "args": [
+        "-fw",
+        "${env:FX3_INSTALL_PATH}/util/cyfwprog/CyBootProgrammer.img",
+        "-dest",
+        "${input:flashTarget}"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "new",
+        "focus": true
+      }
+    },
+    {
+      "label": "Build and Flash FX3 Firmware",
+      "detail": "Build and program application firmware to selected target",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Build FX3 Firmware", "Flash FX3 Firmware"],
+      "group": "build",
+      "problemMatcher": []
+    }
+  ]
+}
